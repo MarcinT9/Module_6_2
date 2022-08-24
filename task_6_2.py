@@ -14,7 +14,6 @@ def create_connection(db_file):
         return conn
     except Error as e:
         print(e)
-    
     return conn
 
 def execute_sql(conn, sql):
@@ -29,6 +28,63 @@ def execute_sql(conn, sql):
     except Error as e:
         print(e)
 
+def add_project(conn, project):
+    """
+    Create a new project into the projecys table
+    :param conn:
+    :param project:
+    :return: project id
+    """
+    sql = '''INSERT INTO projects(nazwa, start_date, end_date)
+            VALUES(?,?,?)'''
+    cur = conn.cursor()
+    cur.execute(sql, project)
+    conn.commit()
+    return cur.lastrowid
+
+def add_task(conn, task):
+    """
+    Create a new task into the tasks table
+    :param conn:
+    param task:
+    :return: task id
+    """
+    sql = '''INSTER INTO tasks(project_id, nazwa, opis, status, start_date, end_date)
+            VALUES(?,?,?,?,?,?)'''
+    cur = conn.cursor()
+    cur.execute(sql, task)
+    conn.commit()
+    return cur.lastrowid
+
+def select_all(conn, table):
+    """
+    Query all rows in the table
+    :param comm: the Connection object
+    :return:
+    """
+    cur = conn.cursor()
+    cur.execute(f'SELECT * FROM {table}')
+    rows = cur.fetchall()
+    return rows
+
+def select_where(conn, table, **query):
+    """
+    Query tasks from table with data from **query dict
+    :param conn: the Connection object
+    :param table: table name
+    :param query: dict of attributes and values
+    :return:
+    """
+    cur = conn.cursor()
+    qs = []
+    values = ()
+    for k, v in query.items():
+        qs.append(f'{k}=?')
+        values += (v,)
+    q = ' AND '.join(qs)
+    cur.execute(f'SELECT * FROM {table} WHERE {q}', values)
+    rows = cur.fetchall()
+    return rows
 
 if __name__ == "__main__":
 
@@ -56,9 +112,7 @@ if __name__ == "__main__":
         );
         """
 
-    db_file = "database.db"
-
-    conn = create_connection(db_file)
+    conn = create_connection("database.db")
     if conn is not None:
         execute_sql(conn, create_projects_sql)
         execute_sql(conn, create_task_sql)
