@@ -1,5 +1,5 @@
 import sqlite3
-from sqlite3 import Error
+from sqlite3 import Error, paramstyle
 
 
 def create_connection(db_file):
@@ -28,31 +28,31 @@ def execute_sql(conn, sql):
     except Error as e:
         print(e)
 
-def add_project(conn, project):
+def add_student(conn, student):
     """
-    Create a new project into the projecys table
+    Create a new student into the students table
     :param conn:
-    :param project:
-    :return: project id
+    :param student:
+    :return: student id
     """
-    sql = '''INSERT INTO projects(nazwa, start_date, end_date)
-            VALUES(?,?,?)'''
+    sql = '''INSERT INTO students(id, first_name, last_name, start_year, study_year)
+            VALUES(?,?,?,?,?)'''
     cur = conn.cursor()
-    cur.execute(sql, project)
+    cur.execute(sql, student)
     conn.commit()
     return cur.lastrowid
 
-def add_task(conn, task):
+def add_subject(conn, subject):
     """
-    Create a new task into the tasks table
+    Create a new subject into the subjects table
     :param conn:
-    param task:
-    :return: task id
+    param subject:
+    :return: subject id
     """
-    sql = '''INSTER INTO tasks(project_id, nazwa, opis, status, start_date, end_date)
-            VALUES(?,?,?,?,?,?)'''
+    sql = '''INSTER INTO subjects(subject_id, name, description, hours_a_year, year_of_study)
+            VALUES(?,?,?,?,?)'''
     cur = conn.cursor()
-    cur.execute(sql, task)
+    cur.execute(sql, subject)
     conn.commit()
     return cur.lastrowid
 
@@ -86,34 +86,94 @@ def select_where(conn, table, **query):
     rows = cur.fetchall()
     return rows
 
+def update(conn, table, id, **kwargs):
+    """
+    Update status, statr_date and end_date of a task
+    :param conn:
+    :param table: table name
+    :param id: row id
+    :return:
+    """
+    parameters = [f'{k} = ?' for k in kwargs]
+    parameters = ', '.join(parameters)
+    values = tuple(v for v in kwargs.values())
+    values += (id, )
+
+    sql = f''' UPDATE {table}
+            SET {parameters}
+            WHERE id = ?'''
+
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, values)
+        conn.commit()
+        print('OK')
+    except sqlite3.OperationalError as e:
+        print(e)
+
+def delete_where(conn, table, **kwargs):
+    """
+    Delete from table where attributes from
+    :para conn: Connection to the SQLite database
+    :param table: table name
+    :para kwargs: dict of attributes and values
+    :return:
+    """
+    qs = []
+    values = tuple()
+    for k, v in kwargs.items():
+        qs.append(f'{k}=?')
+        values += (v, )
+    q = ' AND '.join(qs)
+
+    sql = f'DELETE FROM {table} WHERE {q}'
+    cur = conn.cursor()
+    cur.execute(sql, values)
+    conn.commit()
+    print('Delete')
+
+def delete_all(conn, table):
+    """
+    Delete all rows from table
+    :param conn: Connection to the SQlite database
+    :param table: table name
+    :return:
+    """
+    sql = f'DELETE FROM {table}'
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+    print('Delete')
+
+
 if __name__ == "__main__":
 
-    create_projects_sql = """
-    -- projects table
-    CREATE TABLE IF NOT EXISTS projects (
+    create_students_sql = """
+    -- students table
+    CREATE TABLE IF NOT EXISTS students (
         id integer PRIMARY KEY,
-        nazwa text NOT NULL,
-        start_date text,
-        end_date text
+        fitst_name text NOT NULL,
+        last_name text NOT NULL,
+        start_year text,
+        study_year text
     );
     """
 
-    create_task_sql = """
-    -- zadanie table
-    CREATE TABLE IF NOT EXISTS tasks (
+    create_subjects_sql = """
+    -- subjects table
+    CREATE TABLE IF NOT EXISTS subjects (
         id integer PRIMARY KEY,
-        projekt_id integer NOT NULL,
-        nazwa VARCHAR(250) NOT NULL,
-        opis TEXT,
-        status VARCHAR(15) NOT NULL,
-        statr_date text NOT NULL,
-        end_date text NOT NULL,
-        FOREIGN KEY (projekt_id) REFERENCES projects (id)
+        student_id integer NOT NULL,
+        name VARCHAR(250) NOT NULL,
+        description TEXT,
+        hours_a_year VARCHAR(15) NOT NULL,
+        year_of_study VARCHAR(15) NOT NULL,
+        FOREIGN KEY (student_id) REFERENCES students (id)
         );
         """
 
     conn = create_connection("database.db")
     if conn is not None:
-        execute_sql(conn, create_projects_sql)
-        execute_sql(conn, create_task_sql)
+        execute_sql(conn, create_students_sql)
+        execute_sql(conn, create_subjects_sql)
         conn.close()
