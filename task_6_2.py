@@ -1,5 +1,5 @@
 import sqlite3
-from sqlite3 import Error, paramstyle
+from sqlite3 import Error
 
 
 def create_connection(db_file):
@@ -35,8 +35,8 @@ def add_student(conn, student):
     :param student:
     :return: student id
     """
-    sql = '''INSERT INTO students(id, first_name, last_name, start_year, study_year)
-            VALUES(?,?,?,?,?)'''
+    sql = '''INSERT INTO students(first_name, last_name, start_year, study_year)
+            VALUES(?,?,?,?)'''
     cur = conn.cursor()
     cur.execute(sql, student)
     conn.commit()
@@ -46,11 +46,11 @@ def add_subject(conn, subject):
     """
     Create a new subject into the subjects table
     :param conn:
-    param subject:
+    :param subject:
     :return: subject id
     """
-    sql = '''INSTER INTO subjects(subject_id, name, description, hours_a_year, year_of_study)
-            VALUES(?,?,?,?,?)'''
+    sql = '''INSERT INTO subjects(student_id, name, hours_a_year, year_of_study)
+            VALUES(?,?,?,?)'''
     cur = conn.cursor()
     cur.execute(sql, subject)
     conn.commit()
@@ -152,10 +152,10 @@ if __name__ == "__main__":
     -- students table
     CREATE TABLE IF NOT EXISTS students (
         id integer PRIMARY KEY,
-        fitst_name text NOT NULL,
+        first_name text NOT NULL,
         last_name text NOT NULL,
-        start_year text,
-        study_year text
+        start_year integer,
+        study_year integer
     );
     """
 
@@ -165,15 +165,41 @@ if __name__ == "__main__":
         id integer PRIMARY KEY,
         student_id integer NOT NULL,
         name VARCHAR(250) NOT NULL,
-        description TEXT,
         hours_a_year VARCHAR(15) NOT NULL,
         year_of_study VARCHAR(15) NOT NULL,
         FOREIGN KEY (student_id) REFERENCES students (id)
         );
         """
 
-    conn = create_connection("database.db")
+    db_file = 'database.db'
+    conn = create_connection(db_file)
+
     if conn is not None:
         execute_sql(conn, create_students_sql)
         execute_sql(conn, create_subjects_sql)
-        conn.close()
+    
+    student1 = ('Marcin', 'Nowak', 2009, 3)
+    student2 = ('Anna', 'Kwiatkowska', 2011, 1)
+    student3 = ('Adam', 'Tomek', 2010, 2)
+    element = add_student(conn, student1)
+    element2 = add_student(conn, student2)
+    element3 = add_student(conn, student3)
+
+    subject1 = (element, 'History', 20, 1)
+    subject2 = (element2, 'English', 40, 2)
+    subject3 = (element3, 'Phisics', 20, 3)
+    element4 = add_subject(conn, subject1)
+    element5 = add_subject(conn, subject2)
+    element6 = add_subject(conn, subject3)
+
+    print(select_all(conn, 'students'))
+
+    update(conn, 'students', 1,  study_year=2)
+
+    print(select_where(conn, 'students', id=1))
+
+    delete_where(conn, 'students', first_name='Adam')
+
+    print(select_where(conn, 'students', first_name='Adam'))
+
+    conn.close()
