@@ -178,28 +178,33 @@ if __name__ == "__main__":
         execute_sql(conn, create_students_sql)
         execute_sql(conn, create_subjects_sql)
     
-    student1 = ('Marcin', 'Nowak', 2009, 3)
-    student2 = ('Anna', 'Kwiatkowska', 2011, 1)
-    student3 = ('Adam', 'Tomek', 2010, 2)
-    element = add_student(conn, student1)
-    element2 = add_student(conn, student2)
-    element3 = add_student(conn, student3)
+        student1 = ('Marcin', 'Nowak', 2009, 3)
+        student2 = ('Anna', 'Kwiatkowska', 2011, 1)
+        student3 = ('Adam', 'Tomek', 2010, 2)
+        element = add_student(conn, student1)
+        element2 = add_student(conn, student2)
+        element3 = add_student(conn, student3)
 
-    subject1 = (element, 'History', 20, 1)
-    subject2 = (element2, 'English', 40, 2)
-    subject3 = (element3, 'Phisics', 20, 3)
-    element4 = add_subject(conn, subject1)
-    element5 = add_subject(conn, subject2)
-    element6 = add_subject(conn, subject3)
+        subject1 = (element, 'History', 20, 1)
+        subject2 = (element2, 'English', 40, 2)
+        subject3 = (element3, 'Phisics', 20, 3)
+        element4 = add_subject(conn, subject1)
+        element5 = add_subject(conn, subject2)
+        element6 = add_subject(conn, subject3)
+        conn.commit()
 
-    print(select_all(conn, 'students'))
+        print(select_all(conn, 'students'))
 
-    update(conn, 'students', 1,  study_year=2)
+        update(conn, 'students', 1,  study_year=2)
 
-    print(select_where(conn, 'students', id=1))
+        print(select_where(conn, 'students', id=1))
 
-    delete_where(conn, 'students', first_name='Adam')
+        delete_where(conn, 'students', first_name='Adam')
 
-    print(select_where(conn, 'students', first_name='Adam'))
+        print(select_where(conn, 'students', first_name='Adam'))
+
+        delete_all(conn, 'students')
+        delete_all(conn, 'subjects')
+
 
     conn.close()
